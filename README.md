@@ -1,27 +1,41 @@
 # RDPInterceptor
-RDPInterceptor is a tool that helps personal server owner to only allowed specific IP address can connect.
+
+RDPInterceptor is a tool that helps server owners to only allow specific IP addresses to connect.
 
 # Usage
+
 ## Cmd
+
 ### `.\RDPInterceptor.exe --WebOnly`
 
 ## GUI
+
 ### Just double-click the exe.
 
 # Features
-## WebUI Management
-### You can remotely manage the Whitelist by connect to the port 5000(HTTP)/5001(HTTPS). HTTPS perfer.
-### All the things you can do on the program also can do remotely.
-### You can also only start the WebService.
 
-### WebUI is protected by cookie. The default username and password is `admin/admin`.You can change this in the login page.
-### Cookie's life cycle is 10m.
-### Username and Password are stored at `auth.xml`. The password is encrypted with SHA-256.
+## WebUI Management
+
+### You can remotely manage the whitelist by connecting to port 5000 (HTTP)/5001 (HTTPS). HTTPS is preferred.
+
+### All the tasks you can perform using the program can also be done remotely.
+
+### You can also start only the web service.
+
+### The WebUI is protected by a cookie. The default username and password are `admin/admin`. You can change this on the login page.
+
+### The cookie's lifespan is 10 minutes.
+
+### Usernames and passwords are stored in `auth.xml`. Passwords are encrypted using the SHA-256 algorithm.
 
 ## IP Whitelist
-### Only specific ip address can make connection with host.
+
+### Only specific IP addresses can make connections with the host.
 
 # TODO
+
 ## Custom RDP Port.
-## More ways to interceptor.
-## And many many maybe.
+
+## More interception methods.
+
+## And many more possibilities.
