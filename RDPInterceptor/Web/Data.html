@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Page</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="form-group">
+                <label for="select-box">Select IP:</label>
+                <select id="select-box" class="form-control">
+                    <!-- 下拉框将由 JavaScript 动态生成 -->
+                </select>
+            </div>
+            <button onclick="DelItem()" class="btn btn-danger mb-3">Delete</button>
+            <div class="form-group">
+                <label for="input-box">Enter IP address:</label>
+                <input id="input-box" type="text" class="form-control" placeholder="Enter IP address">
+            </div>
+            <button onclick="AddItem()" class="btn btn-primary mb-3">Add</button>
+            <button onclick="StartCapture()" class="btn btn-success mb-3">Start Interceptor</button>
+            <button onclick="StopCapture()" class="btn btn-warning mb-3">Stop Capture</button>
+            <div class="form-group">
+                <label for="log-area">Log:</label>
+                <textarea id="log-area" rows="5" class="form-control" readonly></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+
+    function StartCapture() {
+        fetch('/Process/StartCapture', {
+            method: 'POST'
+        }).then(response => {
+            if (response.ok) {
+                return response.text();
+            } else {
+                console.error('Failed to start.');
+            }
+        }).then(data => {
+            console.log('Response:', data);
+        }).catch(error => {
+            console.error('Network error:', error);
+        });
+    }
+
+    function StopCapture() {
+        fetch('/Process/StopCapture',
+            {
+                method: 'POST'
+            }).then(response => {
+            if (response.ok) {
+                console.log('Stop capture.');
+            } else {
+                console.error('Failed on stop capture.');
+            }
+        }).catch(error => {
+            console.error('Network error:', error);
+        });
+    }
+
+    function DelItem() {
+        var selectBox = document.getElementById("select-box");
+        var selectedIndex = selectBox.selectedIndex;
+        if (selectedIndex !== -1) {
+            var ipAddr = selectBox.options[selectedIndex].value;
+            fetch('/Process/DeleteIpAddr',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: ipAddr
+                }).then(response =>
+            {
+                if (response.ok)
+                {
+                    selectBox.remove(selectedIndex);
+
+                    currentIpAddrList.splice(selectedIndex, 1);
+                    return response.text();
+                }
+                else
+                {
+                    console.error('Failed to delete IP.');
+                }
+            }).catch(error => {
+                console.error('Network error:', error);
+            });
+        }
+    }
+
+    function AddItem() {
+        var inputBox = document.getElementById("input-box");
+        var ipAddr = inputBox.value;
+        fetch('/Process/AddIpAddr', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain'
+            },
+            body: ipAddr
+        }).then(response => {
+            if (response.ok) {
+                console.log('Added IP.');
+                inputBox.value = "";
+                return response.text();
+            } else {
+                console.error('Failed to add IP.');
+            }
+        }).catch(error => {
+            console.error('Network error:', error);
+        });
+    }
+
+    var currentIpAddrList = [];
+
+    function UpdateDropdown() {
+        fetch('/Process/GetIpAddrList', {
+            method: 'GET'
+        }).then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                console.error('Failed to get IP.');
+            }
+        }).then(data => {
+            var selectBox = document.getElementById("select-box");
+
+            var currentOption = selectBox.value;
+
+            selectBox.innerHTML = "";
+            data.forEach(ipAddr => {
+                var option = document.createElement("option");
+                option.text = ipAddr;
+                selectBox.add(option);
+            });
+
+            selectBox.value = currentOption;
+        }).catch(error => {
+            console.error('Network error:', error);
+        });
+    }
+
+    var logArea = document.getElementById("log-area");
+
+    function UpdateLog() {
+        fetch('/Process/GetLog', {
+            method: 'GET'
+        }).then(response => {
+            if (response.ok) {
+                return response.text();
+            } else {
+                console.error('Failed to get log.');
+            }
+        }).then(data => {
+            if (logArea.value !== data) {
+                logArea.value = data;
+                logArea.style.display = 'none';
+                logArea.offsetHeight;
+                logArea.style.display = '';
+            }
+
+        }).catch(error => {
+            console.error('Network error:', error);
+        });
+    }
+
+    window.onload = function () {
+        UpdateDropdown();
+        UpdateLog();
+        setInterval(function () {
+            UpdateDropdown();
+            UpdateLog();
+        }, 1000);
+    }
+
+</script>
+
+</html>

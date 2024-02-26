@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Page</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="text-center">Login</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" class="form-control" required>
+                    </div>
+                    <button onclick="LoginIn()" type="submit" class="btn btn-primary">Login</button>
+                </form>
+                <button onclick="ChangePasswd()" id="change-password" class="btn btn-link">Change Password</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        var username = document.getElementById('username').value;
+        var password = document.getElementById('password').value;
+
+
+        LoginIn(username, password);
+    });
+
+    document.getElementById('change-password').addEventListener('click', function() {
+        var username = prompt('Please enter your username');
+        var newPassword = prompt('Please enter your new password');
+
+        ChangePasswd(username, newPassword)
+    });
+
+
+    // Function
+
+    async function sha256(message) {
+        const msgBuffer = new TextEncoder('utf-8').encode(message);                    
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => ('00' + b.toString(16)).slice(-2)).join('');
+        return hashHex;
+    }
+    
+    async function LoginIn(username, passwd) {
+        const encryptedPasswd = await sha256(passwd);
+        const authInfo = {username: username, password: encryptedPasswd};
+    
+        fetch('/Process/LoginIn', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(authInfo)
+        }).then(response => {
+            if (response.ok) {
+                console.log('Login successful.');
+
+                var currentUrl = window.location.href;
+                var urlParts = currentUrl.split('/');
+                urlParts[urlParts.length - 1] = 'Data';
+                var newUrl = urlParts.join('/');
+                window.location.href = newUrl;
+
+                
+                return response.text();
+            } else {
+                console.error('Failed to login.');
+            }
+        }).catch(error => {
+            console.error('Network error:', error);
+        });
+    }
+
+    async function ChangePasswd(username, newPassword) {
+        const encryptedPasswd = await sha256(newPassword);
+        const authInfo = {username: username, password: encryptedPasswd};
+    
+        fetch('/Process/ChangePasswd', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(authInfo)
+        }).then(response => {
+            if (response.ok) {
+                console.log('Password changed successfully.');
+            } else {
+                console.error('Failed to change password.');
+            }
+        }).catch(error => {
+            console.error('Network error:', error);
+        });
+    }
+    
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net6.0-windows</TargetFramework>
+        <RootNamespace>RDPInterceptor</RootNamespace>
+        <Nullable>enable</Nullable>
+        <UseWPF>true</UseWPF>
+        <ApplicationIcon></ApplicationIcon>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+	  <FrameworkReference Include="Microsoft.AspNetCore.App" />
+      <PackageReference Include="HandyControl" Version="3.4.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="WindivertDotnet" Version="1.1.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="index.html" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Web\Data.html" />
+      <EmbeddedResource Include="Web\Data.html" />
+      <None Remove="Web\Login.html" />
+      <EmbeddedResource Include="Web\Login.html" />
+    </ItemGroup>
+
+</Project>
