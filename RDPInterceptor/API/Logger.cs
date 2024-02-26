@@ -13,6 +13,9 @@ namespace RDPInterceptor.API
         private static string logFilePath = "Info.log";
         private static readonly object lockObject = new object();
 
+        private static int logCount = 0;
+        private const int maxLogCount = 100;
+
         public static string LogLevel { get; set; } = "Info";
 
         static Logger()
@@ -52,6 +55,11 @@ namespace RDPInterceptor.API
                 LogAddLine(logMessage, Brushes.CornflowerBlue);
                 
                 WriteLogToFile(logMessage);
+                
+                if (++logCount > maxLogCount)
+                {
+                    ClearLogs();
+                }
             }
         }
 
@@ -63,6 +71,11 @@ namespace RDPInterceptor.API
                 LogAddLine(logMessage, Brushes.Red);
                 
                 WriteLogToFile(logMessage);
+                
+                if (++logCount > maxLogCount)
+                {
+                    ClearLogs();
+                }
             }
         }
         
@@ -76,6 +89,11 @@ namespace RDPInterceptor.API
                     LogAddLine(logMessage, Brushes.Chocolate);
                     
                     WriteLogToFile(logMessage);
+                    
+                    if (++logCount > maxLogCount)
+                    {
+                        ClearLogs();
+                    }
                 }
             }
         }
@@ -99,6 +117,15 @@ namespace RDPInterceptor.API
                     writer.WriteLine(message);
                 }
             }
+        }
+
+        private static void ClearLogs()
+        {
+            logRichTextBox.Dispatcher.Invoke(() =>
+            {
+                logRichTextBox.Document.Blocks.Clear();
+            });
+            logCount = 0;
         }
 
         public static string GetLogs()

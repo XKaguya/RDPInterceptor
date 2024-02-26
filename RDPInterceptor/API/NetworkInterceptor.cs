@@ -55,24 +55,21 @@ namespace RDPInterceptor.API
 
             while (IsCapture)
             {
-                while (IsCapture)
+                if (Divert != null)
                 {
-                    if (Divert != null)
+                    try
                     {
-                        try
-                        {
-                            await Divert.RecvAsync(Packet, Addr);
+                        await Divert.RecvAsync(Packet, Addr);
 
-                            if (ProcessPacket(Packet, Addr))
-                            {
-                                await Divert.SendAsync(Packet, Addr);
-                            }
-                        }
-                        catch (TaskCanceledException ex)
+                        if (ProcessPacket(Packet, Addr))
                         {
-                            Logger.Log($"Stop Interceptor.");
-                            IsCapture = false;
+                            await Divert.SendAsync(Packet, Addr);
                         }
+                    }
+                    catch (TaskCanceledException ex)
+                    {
+                        Logger.Log($"Stop Interceptor.");
+                        IsCapture = false;
                     }
                 }
             }
