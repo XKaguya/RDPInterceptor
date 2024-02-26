@@ -14,7 +14,7 @@ RDPInterceptor is a tool that helps server owners to only allow specific IP addr
 
 # Features
 
-## WebUI Management
+## `WebUI Management`
 
 ### You can remotely manage the whitelist by connecting to port 5000 (HTTP)/5001 (HTTPS). HTTPS is preferred.
 
@@ -28,7 +28,7 @@ RDPInterceptor is a tool that helps server owners to only allow specific IP addr
 
 ### Usernames and passwords are stored in `auth.xml`. Passwords are encrypted using the SHA-256 algorithm.
 
-## IP Whitelist
+## `IP Whitelist`
 
 ### Only specific IP addresses can make connections with the host.
 
