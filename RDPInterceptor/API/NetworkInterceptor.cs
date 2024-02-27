@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using WindivertDotnet;
 
 namespace RDPInterceptor.API
@@ -143,42 +142,50 @@ namespace RDPInterceptor.API
             dstIpAddr = dstIp;
         }
 
-        public static async Task<bool> ProcessPacketAsync(WinDivertPacket Packet, WinDivertAddress Address)
+        private static async Task<bool> ProcessPacketAsync(WinDivertPacket Packet, WinDivertAddress Address)
         {
             if (Packet != null)
             {
-                if (!IpWhitelistMode)
+                try
                 {
-                    return true;
-                }
-                else
-                {
-                    var result = Packet.GetParseResult();
-                    IPAddress SrcIpAddr, DstIpAddr;
-                    unsafe
+                    if (!IpWhitelistMode)
                     {
-                        GetIpAddresses(result.IPV4Header, out SrcIpAddr, out DstIpAddr);
-                    }
-
-                    if (IpAddrList.Contains(SrcIpAddr))
-                    {
-                        LogConnections(IsLogConnection, $"Incoming RDP Connection from {SrcIpAddr} has been accepted.");
-                        Packet.CalcChecksums(Address);
-                        return true;
-                    }
-                    else if (IpAddrList.Contains(DstIpAddr))
-                    {
-                        LogConnections(IsLogConnection, $"Outgoing RDP Connection to {DstIpAddr} has been accepted.");
-                        Packet.CalcChecksums(Address);
                         return true;
                     }
                     else
                     {
-                        LogConnections(IsLogConnection, $"Incoming RDP Connection from {SrcIpAddr} has been refused.");
-                        await LogConnectionAsync(SrcIpAddr);
+                        var result = Packet.GetParseResult();
+                        IPAddress SrcIpAddr, DstIpAddr;
+                        unsafe
+                        {
+                            GetIpAddresses(result.IPV4Header, out SrcIpAddr, out DstIpAddr);
+                        }
 
-                        return false;
+                        if (IpAddrList.Contains(SrcIpAddr))
+                        {
+                            LogConnections(IsLogConnection, $"Incoming RDP Connection from {SrcIpAddr} has been accepted.");
+                            Packet.CalcChecksums(Address);
+                            return true;
+                        }
+                        else if (IpAddrList.Contains(DstIpAddr))
+                        {
+                            LogConnections(IsLogConnection, $"Outgoing RDP Connection to {DstIpAddr} has been accepted.");
+                            Packet.CalcChecksums(Address);
+                            return true;
+                        }
+                        else
+                        {
+                            LogConnections(IsLogConnection, $"Incoming RDP Connection from {SrcIpAddr} has been refused.");
+                            await LogConnectionAsync(SrcIpAddr);
+
+                            return false;
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e.Message + e.StackTrace);
+                    throw;
                 }
             }
 
@@ -195,25 +202,33 @@ namespace RDPInterceptor.API
 
         private static async Task LogConnectionAsync(IPAddress srcIpAddr)
         {
-            string logFilePath = "Connectionlist.log";
-
-            if (File.Exists(logFilePath))
+            try
             {
-                string[] lines = await File.ReadAllLinesAsync(logFilePath);
-                if (lines.Contains(srcIpAddr.ToString()))
+                string logFilePath = "Connectionlist.log";
+
+                if (File.Exists(logFilePath))
                 {
-                    return;
+                    string[] lines = await File.ReadAllLinesAsync(logFilePath);
+                    if (lines.Contains(srcIpAddr.ToString()))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    FileStream fs = File.Create(logFilePath);
+                    fs.Close();
+                }
+
+                using (StreamWriter writer = File.AppendText(logFilePath))
+                {
+                    await writer.WriteLineAsync(srcIpAddr.ToString());
                 }
             }
-            else
+            catch (Exception e)
             {
-                FileStream fs = File.Create(logFilePath);
-                fs.Close();
-            }
-
-            using (StreamWriter writer = File.AppendText(logFilePath))
-            {
-                await writer.WriteLineAsync(srcIpAddr.ToString());
+                Logger.Error(e.Message + e.StackTrace);
+                throw;
             }
         }
 
