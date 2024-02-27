@@ -17,22 +17,28 @@ namespace RDPInterceptor
     {
         static LogWindow logWindow = LogWindow.Instance;
         
-        private CancellationTokenSource cancellationTokenSource;
+        public static CancellationTokenSource WebCancellactionTokenSource = new();
+
+        public static ushort WebPort { get; set; } = 5000;
         
         public MainWindow()
         {
             logWindow.Hide();
             InitializeComponent();
             ComboBox.ItemsSource = NetworkInterceptor.IpAddrList;
-
-            cancellationTokenSource = new CancellationTokenSource();
+            
+            Setting.Instance.ReadFromSettingFile();
+            NetworkInterceptor.ReadLinesFromFileAsync();
             
             Task.Run(async () =>
             {
                 try
                 {
                     var host = new WebHostBuilder()
-                        .UseKestrel()
+                        .UseKestrel(options =>
+                        {
+                            options.Listen(IPAddress.Any, WebPort);
+                        })
                         .ConfigureServices(services =>
                         {
                             var webService = new Startup();
@@ -46,7 +52,7 @@ namespace RDPInterceptor
                         })
                         .Build();
                     
-                    await host.RunAsync(cancellationTokenSource.Token);
+                    await host.RunAsync(WebCancellactionTokenSource.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -58,25 +64,27 @@ namespace RDPInterceptor
         protected override void OnClosing(CancelEventArgs ev)
         {
             base.OnClosing(ev);
-            cancellationTokenSource?.Cancel();
+            WebCancellactionTokenSource?.Cancel();
             
             Application.Current.Shutdown(0);
         }
         
         private async void StartCaptureClick(object sender, RoutedEventArgs e)
         {
-            await NetworkInterceptor.StartCapture();
+            await NetworkInterceptor.StartCapture(NetworkInterceptor.CaptureCancellationTokenSource.Token);
         }
 
         private async void StopCaptureClick(object sender, RoutedEventArgs e)
         {
-            await NetworkInterceptor.StopCapture();
+            await NetworkInterceptor.StopCapture(NetworkInterceptor.CaptureCancellationTokenSource.Token);
         }
         
-        private void ConfirmClick(object sender, RoutedEventArgs e)
+        private async void ConfirmClick(object sender, RoutedEventArgs e)
         {
             string input = InputTextBox.Text;
-            if (!NetworkInterceptor.AddIpIntoList(input))
+            bool result = await NetworkInterceptor.AddIpIntoList(input);
+                
+            if (!result)
             {
                 MessageBox.Show($"Invalid IP/Domain.");
             }
@@ -103,6 +111,18 @@ namespace RDPInterceptor
             else
             {
                 Logger.Error($"Selected item is null.");
+            }
+        }
+
+        private void SettingClick(object sender, RoutedEventArgs e)
+        {
+            if (Setting.Instance.IsVisible)
+            {
+                Setting.Instance.Hide();
+            }
+            else
+            {
+                Setting.Instance.Show();
             }
         }
     }
