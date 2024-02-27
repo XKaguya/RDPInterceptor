@@ -10,7 +10,7 @@ namespace RDPInterceptor;
 
 public partial class Setting : Window
 {
-    private static Setting instance;
+    private static Setting? instance;
     
     private static string settingFilePath = "Setting.xml";
     private static readonly object lockObject = new object();

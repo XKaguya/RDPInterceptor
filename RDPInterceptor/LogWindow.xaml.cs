@@ -7,7 +7,7 @@ namespace RDPInterceptor
 {
     public partial class LogWindow : Window
     {
-        private static LogWindow instance;
+        private static LogWindow? instance;
         private RichTextBox logRichTextBox;
 
         public static LogWindow Instance

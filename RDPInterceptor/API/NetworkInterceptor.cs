@@ -24,11 +24,11 @@ namespace RDPInterceptor.API
 
         public static ushort Port { get; set; } = 3389;
 
-        private static WinDivert Divert { get; set; }
+        private static WinDivert? Divert { get; set; }
 
-        private static WinDivertPacket Packet { get; set; }
+        private static WinDivertPacket? Packet { get; set; }
 
-        private static WinDivertAddress Addr { get; set; }
+        private static WinDivertAddress? Addr { get; set; }
 
         public static async Task<bool> AddIpIntoList(string Ip)
         {
@@ -84,16 +84,9 @@ namespace RDPInterceptor.API
             }
         }
 
-        public static async Task StopCapture(CancellationToken cancellationToken)
+        public static async Task StopCapture()
         {
-            if (cancellationToken.CanBeCanceled)
-            {
-                CaptureCancellationTokenSource?.Cancel();
-            }
-            else
-            {
-                Logger.Error("You cannot stop capture at this time.");
-            }
+            CaptureCancellationTokenSource?.Cancel();
 
             Logger.Log("Capture has now stopped.");
         }

@@ -30,6 +30,8 @@ namespace RDPInterceptor
             Setting.Instance.ReadFromSettingFile();
             NetworkInterceptor.ReadLinesFromFileAsync();
             
+            StopCapture.IsEnabled = false;
+            
             Task.Run(async () =>
             {
                 try
@@ -71,12 +73,18 @@ namespace RDPInterceptor
         
         private async void StartCaptureClick(object sender, RoutedEventArgs e)
         {
+            StartCapture.IsEnabled = false;
+            StopCapture.IsEnabled = true;
+            
             await NetworkInterceptor.StartCapture(NetworkInterceptor.CaptureCancellationTokenSource.Token);
         }
 
         private async void StopCaptureClick(object sender, RoutedEventArgs e)
         {
-            await NetworkInterceptor.StopCapture(NetworkInterceptor.CaptureCancellationTokenSource.Token);
+            await NetworkInterceptor.StopCapture();
+            
+            StartCapture.IsEnabled = true;
+            StopCapture.IsEnabled = false;
         }
         
         private async void ConfirmClick(object sender, RoutedEventArgs e)

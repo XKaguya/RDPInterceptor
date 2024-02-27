@@ -12,7 +12,7 @@ namespace RDPInterceptor
     /// </summary>
     public partial class App
     {
-        public static MainWindow CurrentMainWindow { get; private set; }
+        public static MainWindow? CurrentMainWindow { get; private set; }
         
         protected override void OnStartup(StartupEventArgs ev)
         {

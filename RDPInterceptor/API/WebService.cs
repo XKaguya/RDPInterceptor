@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -117,7 +117,7 @@ namespace RDPInterceptor.API.Controllers
         {
             try
             {
-                await NetworkInterceptor.StopCapture(NetworkInterceptor.CaptureCancellationTokenSource.Token);
+                await NetworkInterceptor.StopCapture();
 
                 return Ok("Called success.");
             }
@@ -159,17 +159,16 @@ namespace RDPInterceptor.API.Controllers
 
         [Authorize]
         [HttpPost("AddIpAddr")]
-        public IActionResult PostNewIp()
+        public async Task<IActionResult> PostNewIp()
         {
             try
             {
                 using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
                 {
                     string ipAddr = reader.ReadToEndAsync().Result;
-                    IPAddress IpAddr = null;
                     
-                    Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.AddIpIntoList(ipAddr);});
-
+                    await NetworkInterceptor.AddIpIntoList(ipAddr);
+                    
                     return Ok();
                 }
             }
@@ -208,8 +207,8 @@ namespace RDPInterceptor.API.Controllers
 
         public class AuthInfo
         {
-            public string Username { get; set; }
-            public string Password { get; set; }
+            public string? Username { get; set; }
+            public string? Password { get; set; }
         }
 
         [AllowAnonymous]
@@ -309,7 +308,7 @@ namespace RDPInterceptor.API.Controllers
 
         [Authorize]
         [HttpPost("ChangePasswd")]
-        public IActionResult ChangePasswd([FromBody] AuthInfo authInfo)
+        public async Task<IActionResult> ChangePasswd([FromBody] AuthInfo authInfo)
         {
             Logger.Debug("Client called ChangePasswd");
 
@@ -326,15 +325,16 @@ namespace RDPInterceptor.API.Controllers
             if (authInfo.Username != username)
             {
                 Logger.Log("Username not fit.");
-                return Unauthorized();
+                return BadRequest();
             }
 
             string receivedPassword = ComputeSHA256Hash(authInfo.Password);
-            authDoc.Root.Element("Password").Value = receivedPassword;
+            
+            authDoc.Root.Element("PasswordHash").Value = receivedPassword;
+            
             authDoc.Save(filePath);
-
-            LoginOut();
-            return Unauthorized("Please login again.");
+            
+            return Ok("Please login again.");
         }
     }
 }
