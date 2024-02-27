@@ -167,19 +167,11 @@ namespace RDPInterceptor.API.Controllers
                 {
                     string ipAddr = reader.ReadToEndAsync().Result;
                     IPAddress IpAddr = null;
-                    if (IPAddress.TryParse(ipAddr, out IpAddr))
-                    {
-                        Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.IpAddrList.Add(IpAddr);
-                            NetworkInterceptor.AddIpIntoList(ipAddr);
-                        });
-                    }
-                    else
-                    {
-                        return Ok("Failed.");
-                    }
-                }
+                    
+                    Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.AddIpIntoList(ipAddr);});
 
-                return Ok("Called success.");
+                    return Ok();
+                }
             }
             catch (Exception e)
             {
