@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Net;
 using System.Windows;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using RDPInterceptor.API;
 
 namespace RDPInterceptor
 {

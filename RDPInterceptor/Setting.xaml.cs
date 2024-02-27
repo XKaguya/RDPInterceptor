@@ -4,7 +4,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
-using Microsoft.Extensions.Logging;
 using RDPInterceptor.API;
 
 namespace RDPInterceptor;
