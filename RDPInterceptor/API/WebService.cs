@@ -255,9 +255,9 @@ namespace RDPInterceptor.API.Controllers
             string username = authDoc.Root.Element("Username").Value;
             string passwordHash = authDoc.Root.Element("PasswordHash").Value;
 
-            string receivedPasswordHash = ComputeSHA256Hash(authInfo.Password);
+            string receivedPassword = ComputeSHA256Hash(authInfo.Password);
 
-            if (authInfo.Username == username && receivedPasswordHash == passwordHash)
+            if (authInfo.Username == username && receivedPassword == passwordHash)
             {
                 try
                 {
@@ -323,16 +323,14 @@ namespace RDPInterceptor.API.Controllers
             XDocument authDoc = XDocument.Load(filePath);
             string username = authDoc.Root.Element("Username").Value;
 
-            Logger.Log(username);
-            Logger.Log(authInfo.Username);
-
             if (authInfo.Username != username)
             {
                 Logger.Log("Username not fit.");
                 return Unauthorized();
             }
 
-            authDoc.Root.Element("Password").Value = authInfo.Password;
+            string receivedPassword = ComputeSHA256Hash(authInfo.Password);
+            authDoc.Root.Element("Password").Value = receivedPassword;
             authDoc.Save(filePath);
 
             LoginOut();
