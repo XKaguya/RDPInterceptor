@@ -36,6 +36,6 @@ Only specific IP addresses can make connections with the host.
 
 # TODO
 
-## More interception methods.
+More interception methods.
 
-## And many more possibilities.
+And many more possibilities.
