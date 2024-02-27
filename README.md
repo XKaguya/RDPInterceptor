@@ -1,5 +1,6 @@
 # RDPInterceptor
 RDPInterceptor is a tool that helps server owners to only allow specific IP addresses to connect.
+This tool can prevent from brute force RDP connections.
 | GUI Mode | WebUI |
 |-------|-------|
 | ![GUI ModeGUI Mode](https://github.com/XKaguya/RDPInterceptor/blob/main/Pic/GUI%20Mode.png) | ![WebUI](https://github.com/XKaguya/RDPInterceptor/blob/main/Pic/WebUI.png)|
