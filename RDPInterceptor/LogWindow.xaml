@@ -4,7 +4,9 @@
         Title="Log" Height="340" Width="824">
     <Border Background="#FFF" CornerRadius="10">
         <Grid>
-            <RichTextBox x:Name="LogRichTextBox" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Background="White" Style="{StaticResource RichTextBoxBaseStyle}"></RichTextBox>
+            <RichTextBox x:Name="LogRichTextBox" VerticalScrollBarVisibility="Auto" IsReadOnly="True"
+                         Background="White" Style="{StaticResource RichTextBoxBaseStyle}">
+            </RichTextBox>
         </Grid>
     </Border>
 </Window>

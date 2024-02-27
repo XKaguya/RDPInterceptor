@@ -6,13 +6,14 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using WindivertDotnet;
 
 namespace RDPInterceptor.API
 {
     public class NetworkInterceptor
     {
-        public static CancellationTokenSource CaptureCancellationTokenSource = new();
+        public static CancellationTokenSource? CaptureCancellationTokenSource = new();
 
         public static bool IpWhitelistMode { get; set; } = true;
 
@@ -25,6 +26,8 @@ namespace RDPInterceptor.API
         public static ushort Port { get; set; } = 3389;
 
         private static WinDivert? Divert { get; set; }
+        
+        private static readonly SemaphoreSlim semaphore = new(1);
 
         private static WinDivertPacket? Packet { get; set; }
 
@@ -41,8 +44,16 @@ namespace RDPInterceptor.API
 
             if (IPAddress.TryParse(Ip, out IpAddr))
             {
-                IpAddrList.Add(IpAddr);
-                await AddIpIntoWhitelistFile(IpAddr);
+                if (!IpAddrList.Contains(IpAddr))
+                {
+                    IpAddrList.Add(IpAddr);
+                    await AddIpIntoWhitelistFile(IpAddr);
+                }
+                else
+                {
+                    Logger.Error($"There's already a {IpAddr}");
+                    return false;
+                }
             }
             else
             {
@@ -57,17 +68,36 @@ namespace RDPInterceptor.API
         {
             Logger.Log("Start Interceptor.");
 
+            if (cancellationToken.IsCancellationRequested)
+            {
+                CaptureCancellationTokenSource = new CancellationTokenSource();
+            }
+
+            try
+            {
+                await RunCapture(CaptureCancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException e)
+            {
+                Logger.Error(e.Message + e.StackTrace);
+            }
+        }
+
+        private static async Task RunCapture(CancellationToken cancellationToken)
+        {
             var filter = Filter.True.And(f => f.Tcp.DstPort == Port);
 
             Divert = new WinDivert(filter, WinDivertLayer.Network);
             Addr = new();
             Packet = new();
 
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                if (Divert != null)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    try
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (Divert != null)
                     {
                         await Divert.RecvAsync(Packet, Addr, cancellationToken);
 
@@ -76,20 +106,34 @@ namespace RDPInterceptor.API
                             await Divert.SendAsync(Packet, Addr, cancellationToken);
                         }
                     }
-                    catch (OperationCanceledException ex)
-                    {
-                        Logger.Log($"Stop Interceptor.");
-                    }
                 }
+            }
+            catch (OperationCanceledException ex)
+            {
+                Logger.Log($"Stop Interceptor.");
+            }
+            finally
+            {
+                Divert?.Dispose();
+                Addr?.Dispose();
+                Packet?.Dispose();
             }
         }
 
         public static async Task StopCapture()
         {
-            CaptureCancellationTokenSource?.Cancel();
-
-            Logger.Log("Capture has now stopped.");
+            if (CaptureCancellationTokenSource != null)
+            {
+                CaptureCancellationTokenSource.Cancel();
+                await Task.Delay(100);
+                Logger.Log("Capture has now stopped.");
+            }
+            else
+            {
+                Logger.Log("Capture is not running.");
+            }
         }
+
 
         private static unsafe void GetIpAddresses(IPV4Header* header, out IPAddress srcIpAddr, out IPAddress dstIpAddr)
         {
@@ -118,13 +162,13 @@ namespace RDPInterceptor.API
 
                     if (IpAddrList.Contains(SrcIpAddr))
                     {
-                        LogConnections(IsLogConnection,$"Incoming RDP Connection from {SrcIpAddr} has been accepted.");
+                        LogConnections(IsLogConnection, $"Incoming RDP Connection from {SrcIpAddr} has been accepted.");
                         Packet.CalcChecksums(Address);
                         return true;
                     }
                     else if (IpAddrList.Contains(DstIpAddr))
                     {
-                        LogConnections(IsLogConnection,$"Outgoing RDP Connection to {DstIpAddr} has been accepted.");
+                        LogConnections(IsLogConnection, $"Outgoing RDP Connection to {DstIpAddr} has been accepted.");
                         Packet.CalcChecksums(Address);
                         return true;
                     }
@@ -152,7 +196,7 @@ namespace RDPInterceptor.API
         private static async Task LogConnectionAsync(IPAddress srcIpAddr)
         {
             string logFilePath = "Connectionlist.log";
-            
+
             if (File.Exists(logFilePath))
             {
                 string[] lines = await File.ReadAllLinesAsync(logFilePath);
@@ -166,33 +210,31 @@ namespace RDPInterceptor.API
                 FileStream fs = File.Create(logFilePath);
                 fs.Close();
             }
-            
+
             using (StreamWriter writer = File.AppendText(logFilePath))
             {
                 await writer.WriteLineAsync(srcIpAddr.ToString());
             }
         }
 
-        private static readonly SemaphoreSlim semaphore = new(1);
-
         public static async void ReadLinesFromFileAsync()
         {
             await semaphore.WaitAsync();
-            
+
             string WhitelistFilePath = "Whitelist.txt";
-            
+
             try
             {
                 if (File.Exists(WhitelistFilePath))
                 {
                     IPAddress IpAddr;
-                
+
                     foreach (string ip in await File.ReadAllLinesAsync(WhitelistFilePath))
                     {
                         if (IPAddress.TryParse(ip, out IpAddr))
                         {
                             IpAddrList.Add(IpAddr);
-                            
+
                             Logger.Log($"IP {ip} has been read into whitelist.");
                         }
                         else
@@ -212,7 +254,7 @@ namespace RDPInterceptor.API
                 semaphore.Release();
             }
         }
-        
+
         public static async Task AddIpIntoWhitelistFile(IPAddress ipAddress)
         {
             Logger.Debug($"Method AddIpIntoWhitelistFile called.");
@@ -231,7 +273,6 @@ namespace RDPInterceptor.API
                     if (Array.Exists(lines, line => line.Equals(ipAddress.ToString())))
                     {
                         Logger.Debug($"IP {ipAddress} already in {WhitelistFilePath}");
-                        return;
                     }
                     else
                     {
@@ -263,7 +304,59 @@ namespace RDPInterceptor.API
                 semaphore.Release();
             }
         }
+        
+        public static async Task RemoveIpFromList(IPAddress ipAddress)
+        {
+            Logger.Debug($"Method RemoveIpFromWhitelist called.");
+
+            try
+            {
+                if (IpAddrList.Contains(ipAddress))
+                {
+                    IpAddrList.Remove(ipAddress);
+                }
+                
+                string WhitelistFilePath = "Whitelist.txt";
+
+                if (File.Exists(WhitelistFilePath))
+                {
+                    Logger.Debug($"File {WhitelistFilePath} exists. Proceeding...");
+
+                    await semaphore.WaitAsync();
+
+                    string[] lines = await File.ReadAllLinesAsync(WhitelistFilePath);
+
+                    if (lines.Contains(ipAddress.ToString()))
+                    {
+                        List<string> linesList = lines.ToList();
+                        linesList.Remove(ipAddress.ToString());
+                        
+                        using (StreamWriter writer = new StreamWriter(WhitelistFilePath, false))
+                        {
+                            foreach (string ip in linesList)
+                            {
+                                await writer.WriteLineAsync(ip);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    FileStream fs = File.Create(WhitelistFilePath);
+                    fs.Close();
+
+                    Logger.Error($"File {WhitelistFilePath} doesn't exist. Now create file {WhitelistFilePath}.");
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message + e.Message);
+                throw;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
     }
 }
-
-

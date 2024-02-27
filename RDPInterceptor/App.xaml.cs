@@ -13,7 +13,7 @@ namespace RDPInterceptor
     public partial class App
     {
         public static MainWindow? CurrentMainWindow { get; private set; }
-        
+
         protected override void OnStartup(StartupEventArgs ev)
         {
             base.OnStartup(ev);
@@ -24,25 +24,9 @@ namespace RDPInterceptor
 
                 if (command == "--WebOnly")
                 {
-                    var host = new WebHostBuilder()
-                        .UseKestrel(options =>
-                        {
-                            options.Listen(IPAddress.Any, RDPInterceptor.MainWindow.WebPort);
-                        })
-                        .ConfigureServices(services =>
-                        {
-                            var webService = new Startup();
-                            webService.ConfigureServices(services);
-                        })
-                        .Configure(app =>
-                        {
-                            var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
-                            var webService = new Startup();
-                            webService.Configure(app, env);
-                        })
-                        .Build();
+                    RDPInterceptor.MainWindow.InitWebServer();
 
-                    host.RunAsync();
+                    MessageBox.Show($"Web service started at http://localhost:{RDPInterceptor.MainWindow.WebPort}.");
                 }
                 else
                 {

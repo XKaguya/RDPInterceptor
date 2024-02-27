@@ -37,7 +37,7 @@
     function StartCapture() {
         document.getElementById("StartCapture").disabled = true;
         document.getElementById("StopCapture").disabled = false;
-        
+
         fetch('/Process/StartCapture', {
             method: 'POST'
         }).then(response => {
@@ -56,7 +56,7 @@
     function StopCapture() {
         document.getElementById("StartCapture").disabled = false;
         document.getElementById("StopCapture").disabled = true;
-        
+
         fetch('/Process/StopCapture',
             {
                 method: 'POST'
@@ -83,17 +83,13 @@
                         'Content-Type': 'text/plain'
                     },
                     body: ipAddr
-                }).then(response =>
-            {
-                if (response.ok)
-                {
+                }).then(response => {
+                if (response.ok) {
                     selectBox.remove(selectedIndex);
 
                     currentIpAddrList.splice(selectedIndex, 1);
                     return response.text();
-                }
-                else
-                {
+                } else {
                     console.error('Failed to delete IP.');
                 }
             }).catch(error => {
@@ -180,7 +176,7 @@
     window.onload = function () {
         document.getElementById("StartCapture").disabled = false;
         document.getElementById("StopCapture").disabled = true;
-        
+
         UpdateDropdown();
         UpdateLog();
         setInterval(function () {
