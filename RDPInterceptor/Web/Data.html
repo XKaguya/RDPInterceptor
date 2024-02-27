@@ -21,8 +21,8 @@
                 <input id="input-box" type="text" class="form-control" placeholder="Enter IP address">
             </div>
             <button onclick="AddItem()" class="btn btn-primary mb-3">Add</button>
-            <button onclick="StartCapture()" class="btn btn-success mb-3">Start Interceptor</button>
-            <button onclick="StopCapture()" class="btn btn-warning mb-3">Stop Capture</button>
+            <button id="StartCapture" onclick="StartCapture()" class="btn btn-success mb-3">Start Interceptor</button>
+            <button id="StopCapture" onclick="StopCapture()" class="btn btn-warning mb-3">Stop Capture</button>
             <div class="form-group">
                 <label for="log-area">Log:</label>
                 <textarea id="log-area" rows="5" class="form-control" readonly></textarea>
@@ -35,6 +35,9 @@
 <script>
 
     function StartCapture() {
+        document.getElementById("StartCapture").disabled = true;
+        document.getElementById("StopCapture").disabled = false;
+        
         fetch('/Process/StartCapture', {
             method: 'POST'
         }).then(response => {
@@ -51,6 +54,9 @@
     }
 
     function StopCapture() {
+        document.getElementById("StartCapture").disabled = false;
+        document.getElementById("StopCapture").disabled = true;
+        
         fetch('/Process/StopCapture',
             {
                 method: 'POST'
@@ -172,6 +178,9 @@
     }
 
     window.onload = function () {
+        document.getElementById("StartCapture").disabled = false;
+        document.getElementById("StopCapture").disabled = true;
+        
         UpdateDropdown();
         UpdateLog();
         setInterval(function () {

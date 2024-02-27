@@ -71,8 +71,7 @@
     }
 
     async function ChangePasswd(username, newPassword) {
-        const encryptedPasswd = await sha256(newPassword);
-        const authInfo = {username: username, password: encryptedPasswd};
+        const authInfo = {username: username, password: newPassword};
     
         fetch('/Process/ChangePasswd', {
             method: 'POST',

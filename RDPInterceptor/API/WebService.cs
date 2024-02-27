@@ -117,7 +117,7 @@ namespace RDPInterceptor.API.Controllers
         {
             try
             {
-                await NetworkInterceptor.StopCapture(NetworkInterceptor.CaptureCancellationTokenSource.Token);
+                await NetworkInterceptor.StopCapture();
 
                 return Ok("Called success.");
             }
@@ -159,25 +159,18 @@ namespace RDPInterceptor.API.Controllers
 
         [Authorize]
         [HttpPost("AddIpAddr")]
-        public IActionResult PostNewIp()
+        public async Task<IActionResult> PostNewIp()
         {
             try
             {
                 using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
                 {
                     string ipAddr = reader.ReadToEndAsync().Result;
-                    IPAddress IpAddr = null;
-                    if (IPAddress.TryParse(ipAddr, out IpAddr))
-                    {
-                        Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.IpAddrList.Add(IpAddr); });
-                    }
-                    else
-                    {
-                        return Ok("Failed.");
-                    }
-                }
 
-                return Ok("Called success.");
+                    await NetworkInterceptor.AddIpIntoList(ipAddr);
+
+                    return Ok();
+                }
             }
             catch (Exception e)
             {
@@ -214,8 +207,8 @@ namespace RDPInterceptor.API.Controllers
 
         public class AuthInfo
         {
-            public string Username { get; set; }
-            public string Password { get; set; }
+            public string? Username { get; set; }
+            public string? Password { get; set; }
         }
 
         [AllowAnonymous]
@@ -261,9 +254,9 @@ namespace RDPInterceptor.API.Controllers
             string username = authDoc.Root.Element("Username").Value;
             string passwordHash = authDoc.Root.Element("PasswordHash").Value;
 
-            string receivedPasswordHash = ComputeSHA256Hash(authInfo.Password);
+            string receivedPassword = ComputeSHA256Hash(authInfo.Password);
 
-            if (authInfo.Username == username && receivedPasswordHash == passwordHash)
+            if (authInfo.Username == username && receivedPassword == passwordHash)
             {
                 try
                 {
@@ -315,7 +308,7 @@ namespace RDPInterceptor.API.Controllers
 
         [Authorize]
         [HttpPost("ChangePasswd")]
-        public IActionResult ChangePasswd([FromBody] AuthInfo authInfo)
+        public async Task<IActionResult> ChangePasswd([FromBody] AuthInfo authInfo)
         {
             Logger.Debug("Client called ChangePasswd");
 
@@ -329,20 +322,23 @@ namespace RDPInterceptor.API.Controllers
             XDocument authDoc = XDocument.Load(filePath);
             string username = authDoc.Root.Element("Username").Value;
 
-            Logger.Log(username);
-            Logger.Log(authInfo.Username);
-
             if (authInfo.Username != username)
             {
                 Logger.Log("Username not fit.");
-                return Unauthorized();
+                return BadRequest();
             }
 
-            authDoc.Root.Element("Password").Value = authInfo.Password;
+            Logger.Debug(authInfo.Password);
+            
+            
+            string receivedPassword = ComputeSHA256Hash(authInfo.Password);
+            
+            Logger.Debug(receivedPassword);
+            
+            authDoc.Root.Element("PasswordHash").Value = receivedPassword;
             authDoc.Save(filePath);
-
-            LoginOut();
-            return Unauthorized("Please login again.");
+            
+            return Ok("Please login again.");
         }
     }
 }
