@@ -18,25 +18,23 @@ RDPInterceptor is a tool that helps server owners to only allow specific IP addr
 
 ## `WebUI Management`
 
-### You can remotely manage the whitelist by connecting to port 5000 (HTTP)/5001 (HTTPS). HTTPS is preferred.
+You can remotely manage the whitelist by connecting to port 5000.
 
-### All the tasks you can perform using the program can also be done remotely.
+All the tasks you can perform using the program can also be done remotely.
 
-### You can also start only the web service.
+You can also start only the web service.
 
-### The WebUI is protected by a cookie. The default username and password are `admin/admin`. You can change this on the login page.
+The WebUI is protected by a cookie. The default username and password are `admin/admin`. You can change this on the login page.
 
-### The cookie's lifespan is 10 minutes.
+The cookie's lifespan is 10 minutes.
 
-### Usernames and passwords are stored in `auth.xml`. Passwords are encrypted using the SHA-256 algorithm.
+Usernames and passwords are stored in `auth.xml`. Passwords are encrypted using the SHA-256 algorithm.
 
 ## `IP Whitelist`
 
-### Only specific IP addresses can make connections with the host.
+Only specific IP addresses can make connections with the host.
 
 # TODO
-
-## Custom RDP Port.
 
 ## More interception methods.
 
