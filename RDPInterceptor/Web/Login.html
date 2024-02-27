@@ -32,8 +32,7 @@
 
         var username = document.getElementById('username').value;
         var password = document.getElementById('password').value;
-
-
+        
         LoginIn(username, password);
     });
 
@@ -44,45 +43,31 @@
         ChangePasswd(username, newPassword)
     });
 
-
     // Function
 
-    async function sha256(message) {
-        const msgBuffer = new TextEncoder('utf-8').encode(message);                    
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => ('00' + b.toString(16)).slice(-2)).join('');
-        return hashHex;
-    }
-    
     async function LoginIn(username, passwd) {
-        const encryptedPasswd = await sha256(passwd);
-        const authInfo = {username: username, password: encryptedPasswd};
-    
-        fetch('/Process/LoginIn', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(authInfo)
-        }).then(response => {
+        const authInfo = { username: username, password: passwd };
+        try {
+            const response = await fetch('/Process/LoginIn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(authInfo)
+            });
             if (response.ok) {
                 console.log('Login successful.');
-
                 var currentUrl = window.location.href;
                 var urlParts = currentUrl.split('/');
                 urlParts[urlParts.length - 1] = 'Data';
                 var newUrl = urlParts.join('/');
                 window.location.href = newUrl;
-
-                
-                return response.text();
             } else {
                 console.error('Failed to login.');
             }
-        }).catch(error => {
+        } catch (error) {
             console.error('Network error:', error);
-        });
+        }
     }
 
     async function ChangePasswd(username, newPassword) {

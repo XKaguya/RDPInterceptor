@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Net;
 using System.Windows;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +25,10 @@ namespace RDPInterceptor
                 if (command == "--WebOnly")
                 {
                     var host = new WebHostBuilder()
-                        .UseKestrel()
+                        .UseKestrel(options =>
+                        {
+                            options.Listen(IPAddress.Any, RDPInterceptor.MainWindow.WebPort);
+                        })
                         .ConfigureServices(services =>
                         {
                             var webService = new Startup();

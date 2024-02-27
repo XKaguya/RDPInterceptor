@@ -105,6 +105,8 @@ namespace RDPInterceptor.API
                 Paragraph paragraph = new Paragraph(new Run(message));
                 paragraph.Foreground = color;
                 logRichTextBox.Document.Blocks.Add(paragraph);
+                
+                logRichTextBox.ScrollToEnd();
             });
         }
 

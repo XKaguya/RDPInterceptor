@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using RDPInterceptor.API.Controllers;
@@ -46,10 +48,12 @@ namespace RDPInterceptor.API
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
-                endpoints.MapControllers();
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
+
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
             app.Run(async (context) =>
             {
@@ -96,8 +100,8 @@ namespace RDPInterceptor.API.Controllers
         {
             try
             {
-                await NetworkInterceptor.StartCapture();
-                
+                await NetworkInterceptor.StartCapture(NetworkInterceptor.CaptureCancellationTokenSource.Token);
+
                 return Ok("Called success.");
             }
             catch (Exception ex)
@@ -113,8 +117,8 @@ namespace RDPInterceptor.API.Controllers
         {
             try
             {
-                await NetworkInterceptor.StopCapture();
-                
+                await NetworkInterceptor.StopCapture(NetworkInterceptor.CaptureCancellationTokenSource.Token);
+
                 return Ok("Called success.");
             }
             catch (Exception ex)
@@ -123,7 +127,7 @@ namespace RDPInterceptor.API.Controllers
                 throw;
             }
         }
-        
+
         [Authorize]
         [HttpPost("DeleteIpAddr")]
         public IActionResult DeleteIpAddr()
@@ -131,15 +135,12 @@ namespace RDPInterceptor.API.Controllers
             try
             {
                 using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
-                {  
+                {
                     string ipAddr = reader.ReadToEndAsync().Result;
                     IPAddress IpAddr = null;
                     if (IPAddress.TryParse(ipAddr, out IpAddr))
                     {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            NetworkInterceptor.IpAddrList.Remove(IpAddr);
-                        });
+                        Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.IpAddrList.Remove(IpAddr); });
                     }
                     else
                     {
@@ -155,7 +156,7 @@ namespace RDPInterceptor.API.Controllers
                 throw;
             }
         }
-        
+
         [Authorize]
         [HttpPost("AddIpAddr")]
         public IActionResult PostNewIp()
@@ -163,15 +164,12 @@ namespace RDPInterceptor.API.Controllers
             try
             {
                 using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
-                {  
+                {
                     string ipAddr = reader.ReadToEndAsync().Result;
                     IPAddress IpAddr = null;
                     if (IPAddress.TryParse(ipAddr, out IpAddr))
                     {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            NetworkInterceptor.IpAddrList.Add(IpAddr);
-                        });
+                        Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.IpAddrList.Add(IpAddr); });
                     }
                     else
                     {
@@ -194,7 +192,7 @@ namespace RDPInterceptor.API.Controllers
         {
             return Ok(Logger.GetLogs());
         }
-        
+
         [Authorize]
         [HttpGet("GetIpAddrList")]
         public IActionResult GetIpAddrList()
@@ -202,9 +200,9 @@ namespace RDPInterceptor.API.Controllers
             try
             {
                 var ipAddrList = NetworkInterceptor.IpAddrList;
-                
+
                 var ipAddrStrList = ipAddrList.Select(ip => ip.ToString()).ToList();
-        
+
                 return Ok(ipAddrStrList);
             }
             catch (Exception e)
@@ -213,45 +211,59 @@ namespace RDPInterceptor.API.Controllers
                 throw;
             }
         }
-        
+
         public class AuthInfo
         {
             public string Username { get; set; }
             public string Password { get; set; }
         }
-        
+
         [AllowAnonymous]
         [HttpPost("LoginOut")]
         public async Task<IActionResult> LoginOut()
         {
+            Logger.Debug("Client called LoginOut");
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Ok();
         }
-        
+
         [AllowAnonymous]
         [HttpPost("LoginIn")]
         public async Task<IActionResult> LoginIn([FromBody] AuthInfo authInfo)
         {
+            var remoteIpAddress = HttpContext.Connection.RemoteIpAddress;
+
+            Logger.Debug($"Client {remoteIpAddress} called LoginIn");
+
+            if (authInfo == null)
+            {
+                Logger.Error($"ERROR! authInfo is null!");
+                return Unauthorized();
+            }
+
             string filePath = "auth.xml";
             string defaultUsername = "admin";
-            string defaultPassword = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
+            string defaultPasswordHash = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 
             if (!System.IO.File.Exists(filePath))
             {
                 XDocument doc = new XDocument(
                     new XElement("Auth",
                         new XElement("Username", defaultUsername),
-                        new XElement("Password", defaultPassword)
+                        new XElement("PasswordHash", defaultPasswordHash)
                     )
                 );
                 doc.Save(filePath);
             }
-    
+
             XDocument authDoc = XDocument.Load(filePath);
             string username = authDoc.Root.Element("Username").Value;
-            string password = authDoc.Root.Element("Password").Value;
-            
-            if (authInfo.Username == username && authInfo.Password == password)
+            string passwordHash = authDoc.Root.Element("PasswordHash").Value;
+
+            string receivedPasswordHash = ComputeSHA256Hash(authInfo.Password);
+
+            if (authInfo.Username == username && receivedPasswordHash == passwordHash)
             {
                 try
                 {
@@ -266,8 +278,8 @@ namespace RDPInterceptor.API.Controllers
                     var authProperties = new AuthenticationProperties();
 
                     await HttpContext.SignInAsync(
-                        CookieAuthenticationDefaults.AuthenticationScheme, 
-                        new ClaimsPrincipal(claimsIdentity), 
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
                         authProperties);
                 }
                 catch (Exception e)
@@ -277,7 +289,7 @@ namespace RDPInterceptor.API.Controllers
                 }
 
                 Logger.Log("Login success.");
-                
+
                 return Ok();
             }
             else
@@ -285,35 +297,51 @@ namespace RDPInterceptor.API.Controllers
                 return Unauthorized();
             }
         }
-        
+
+        private string ComputeSHA256Hash(string input)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+                StringBuilder builder = new StringBuilder();
+                foreach (byte b in bytes)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+
+                return builder.ToString();
+            }
+        }
+
         [Authorize]
         [HttpPost("ChangePasswd")]
         public IActionResult ChangePasswd([FromBody] AuthInfo authInfo)
         {
-            Logger.Log("Called changepwd");
-            
+            Logger.Debug("Client called ChangePasswd");
+
             string filePath = "auth.xml";
 
             if (!System.IO.File.Exists(filePath))
             {
-                return NotFound("The auth file does not exist.");   
+                return NotFound("The auth file does not exist.");
             }
-            
+
             XDocument authDoc = XDocument.Load(filePath);
             string username = authDoc.Root.Element("Username").Value;
-            
+
             Logger.Log(username);
             Logger.Log(authInfo.Username);
-        
+
             if (authInfo.Username != username)
             {
                 Logger.Log("Username not fit.");
                 return Unauthorized();
             }
-        
+
             authDoc.Root.Element("Password").Value = authInfo.Password;
             authDoc.Save(filePath);
-            
+
+            LoginOut();
             return Unauthorized("Please login again.");
         }
     }
