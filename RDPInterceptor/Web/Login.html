@@ -5,38 +5,38 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <h2 class="text-center">Login</h2>
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="username">Username:</label>
-                        <input type="text" id="username" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password:</label>
-                        <input type="password" id="password" class="form-control" required>
-                    </div>
-                    <button onclick="LoginIn()" type="submit" class="btn btn-primary">Login</button>
-                </form>
-                <button onclick="ChangePasswd()" id="change-password" class="btn btn-link">Change Password</button>
-            </div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2 class="text-center">Login</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" class="form-control" required>
+                </div>
+                <button onclick="LoginIn()" type="submit" class="btn btn-primary">Login</button>
+            </form>
+            <button onclick="ChangePasswd()" id="change-password" class="btn btn-link">Change Password</button>
         </div>
     </div>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script>
-    document.getElementById('login-form').addEventListener('submit', function(event) {
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script>
+    document.getElementById('login-form').addEventListener('submit', function (event) {
         event.preventDefault();
 
         var username = document.getElementById('username').value;
         var password = document.getElementById('password').value;
-        
+
         LoginIn(username, password);
     });
 
-    document.getElementById('change-password').addEventListener('click', function() {
+    document.getElementById('change-password').addEventListener('click', function () {
         var username = prompt('Please enter your username');
         var newPassword = prompt('Please enter your new password');
 
@@ -46,7 +46,7 @@
     // Function
 
     async function LoginIn(username, passwd) {
-        const authInfo = { username: username, password: passwd };
+        const authInfo = {username: username, password: passwd};
         try {
             const response = await fetch('/Process/LoginIn', {
                 method: 'POST',
@@ -72,7 +72,7 @@
 
     async function ChangePasswd(username, newPassword) {
         const authInfo = {username: username, password: newPassword};
-    
+
         fetch('/Process/ChangePasswd', {
             method: 'POST',
             headers: {
@@ -89,7 +89,7 @@
             console.error('Network error:', error);
         });
     }
-    
-    </script>
+
+</script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -166,9 +166,9 @@ namespace RDPInterceptor.API.Controllers
                 using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
                 {
                     string ipAddr = reader.ReadToEndAsync().Result;
-                    
-                    await NetworkInterceptor.AddIpIntoList(ipAddr);
-                    
+
+                    Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.AddIpIntoList(ipAddr); });
+
                     return Ok();
                 }
             }
@@ -329,11 +329,10 @@ namespace RDPInterceptor.API.Controllers
             }
 
             string receivedPassword = ComputeSHA256Hash(authInfo.Password);
-            
+
             authDoc.Root.Element("PasswordHash").Value = receivedPassword;
-            
             authDoc.Save(filePath);
-            
+
             return Ok("Please login again.");
         }
     }

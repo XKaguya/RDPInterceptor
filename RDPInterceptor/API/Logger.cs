@@ -21,7 +21,7 @@ namespace RDPInterceptor.API
         static Logger()
         {
             logRichTextBox = new RichTextBox();
-            
+
             File.WriteAllText(logFilePath, string.Empty);
         }
 
@@ -36,12 +36,12 @@ namespace RDPInterceptor.API
                 LogLevel = level;
             }
         }
-        
+
         public static void SetLogTarget(RichTextBox richTextBox)
         {
             logRichTextBox = richTextBox;
         }
-        
+
         public static void SetLogBackgroundColor(SolidColorBrush color)
         {
             logRichTextBox.Background = color;
@@ -53,9 +53,9 @@ namespace RDPInterceptor.API
             {
                 string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [INFO]: {message}";
                 LogAddLine(logMessage, Brushes.CornflowerBlue);
-                
+
                 WriteLogToFile(logMessage);
-                
+
                 if (++logCount > maxLogCount)
                 {
                     ClearLogs();
@@ -69,16 +69,16 @@ namespace RDPInterceptor.API
             {
                 string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [ERROR]: {message}";
                 LogAddLine(logMessage, Brushes.Red);
-                
+
                 WriteLogToFile(logMessage);
-                
+
                 if (++logCount > maxLogCount)
                 {
                     ClearLogs();
                 }
             }
         }
-        
+
         public static void Debug(string message)
         {
             if (logRichTextBox != null)
@@ -87,9 +87,9 @@ namespace RDPInterceptor.API
                 {
                     string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [DEBUG]: {message}";
                     LogAddLine(logMessage, Brushes.Chocolate);
-                    
+
                     WriteLogToFile(logMessage);
-                    
+
                     if (++logCount > maxLogCount)
                     {
                         ClearLogs();
@@ -105,7 +105,7 @@ namespace RDPInterceptor.API
                 Paragraph paragraph = new Paragraph(new Run(message));
                 paragraph.Foreground = color;
                 logRichTextBox.Document.Blocks.Add(paragraph);
-                
+
                 logRichTextBox.ScrollToEnd();
             });
         }
@@ -123,10 +123,7 @@ namespace RDPInterceptor.API
 
         private static void ClearLogs()
         {
-            logRichTextBox.Dispatcher.Invoke(() =>
-            {
-                logRichTextBox.Document.Blocks.Clear();
-            });
+            logRichTextBox.Dispatcher.Invoke(() => { logRichTextBox.Document.Blocks.Clear(); });
             logCount = 0;
         }
 
@@ -150,7 +147,7 @@ namespace RDPInterceptor.API
                             }
                         }
                     }
-            
+
                     return text.ToString();
                 });
 

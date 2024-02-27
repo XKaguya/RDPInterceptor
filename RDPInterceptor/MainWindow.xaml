@@ -7,15 +7,26 @@
         mc:Ignorable="d"
         Title="RDPInterceptor" Height="300" Width="500" ResizeMode="NoResize">
     <Grid>
-        <Button x:Name="StartCapture" Content="Start Intercept" Click="StartCaptureClick" Style="{StaticResource ButtonSuccess}" Width="111" HorizontalAlignment="Left" Margin="44,222,0,0" VerticalAlignment="Top" Height="30"/>
-        <Button x:Name="StopCapture" Content="Stop Intercept" Click="StopCaptureClick" Style="{StaticResource ButtonDanger}" Margin="172,222,0,0" VerticalAlignment="Top" Width="110" Height="30" HorizontalAlignment="Left"/>
-        <Button Content="Logs" Click="LogButtonClick" Style="{StaticResource ButtonInfo}" HorizontalAlignment="Stretch" Margin="295,222,115,0" VerticalAlignment="Top" Height="30" />
-        <TextBox x:Name="InputTextBox" Margin="44,156,173,74"/>
-        <Button Content="Submit" Click="ConfirmClick" HorizontalAlignment="Left" Margin="332,156,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.372,1.021" Height="32" Width="65"/>
-        <Button Content="Delete" Click="DeleteClick" RenderTransformOrigin="0.613,0.669" HorizontalAlignment="Left" Margin="332,57,0,0" VerticalAlignment="Top" Height="30" Width="65"/>
-        <ComboBox x:Name="ComboBox" Margin="44,57,173,171"/>
-        <hc:SimpleText HorizontalAlignment="Left" Height="27" Margin="44,35,0,0" VerticalAlignment="Top" Width="302" Text="Select IP:" FontSize="15"/>
-        <hc:SimpleText HorizontalAlignment="Left" Height="27" Margin="44,124,0,0" VerticalAlignment="Top" Width="302" Text="Enter IP Address:" FontSize="15"/>
-        <Button Content="Setting" Click="SettingClick" Style="{StaticResource ButtonPrimary}" HorizontalAlignment="Stretch" Margin="399,222,21,0" VerticalAlignment="Top" Height="30" RenderTransformOrigin="0.622,0.545" />
+        <Button x:Name="StartCapture" Content="Start Intercept" Click="StartCaptureClick"
+                Style="{StaticResource ButtonSuccess}" Width="111" HorizontalAlignment="Left" Margin="44,222,0,0"
+                VerticalAlignment="Top" Height="30" />
+        <Button x:Name="StopCapture" Content="Stop Intercept" Click="StopCaptureClick"
+                Style="{StaticResource ButtonDanger}" Margin="172,222,0,0" VerticalAlignment="Top" Width="110"
+                Height="30" HorizontalAlignment="Left" />
+        <Button Content="Logs" Click="LogButtonClick" Style="{StaticResource ButtonInfo}" HorizontalAlignment="Stretch"
+                Margin="295,222,115,0" VerticalAlignment="Top" Height="30" />
+        <TextBox x:Name="InputTextBox" Margin="44,156,173,74" />
+        <Button Content="Submit" Click="ConfirmClick" HorizontalAlignment="Left" Margin="332,156,0,0"
+                VerticalAlignment="Top" RenderTransformOrigin="0.372,1.021" Height="32" Width="65" />
+        <Button Content="Delete" Click="DeleteClick" RenderTransformOrigin="0.613,0.669" HorizontalAlignment="Left"
+                Margin="332,57,0,0" VerticalAlignment="Top" Height="30" Width="65" />
+        <ComboBox x:Name="ComboBox" Margin="44,57,173,171" />
+        <hc:SimpleText HorizontalAlignment="Left" Height="27" Margin="44,35,0,0" VerticalAlignment="Top" Width="302"
+                       Text="Select IP:" FontSize="15" />
+        <hc:SimpleText HorizontalAlignment="Left" Height="27" Margin="44,124,0,0" VerticalAlignment="Top" Width="302"
+                       Text="Enter IP Address:" FontSize="15" />
+        <Button Content="Setting" Click="SettingClick" Style="{StaticResource ButtonPrimary}"
+                HorizontalAlignment="Stretch" Margin="399,222,21,0" VerticalAlignment="Top" Height="30"
+                RenderTransformOrigin="0.622,0.545" />
     </Grid>
 </Window>

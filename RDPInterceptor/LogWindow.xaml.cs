@@ -25,7 +25,7 @@ namespace RDPInterceptor
                 return instance;
             }
         }
-        
+
         protected override void OnClosing(CancelEventArgs ev)
         {
             ev.Cancel = true;
