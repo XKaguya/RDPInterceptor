@@ -169,7 +169,9 @@ namespace RDPInterceptor.API.Controllers
                     IPAddress IpAddr = null;
                     if (IPAddress.TryParse(ipAddr, out IpAddr))
                     {
-                        Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.IpAddrList.Add(IpAddr); });
+                        Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.IpAddrList.Add(IpAddr);
+                            NetworkInterceptor.AddIpIntoList(ipAddr);
+                        });
                     }
                     else
                     {
