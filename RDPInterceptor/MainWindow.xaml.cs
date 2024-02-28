@@ -75,18 +75,26 @@ namespace RDPInterceptor
 
         private async void StartCaptureClick(object sender, RoutedEventArgs e)
         {
-            StartCapture.IsEnabled = false;
-            StopCapture.IsEnabled = true;
-
             await NetworkInterceptor.StartCapture(NetworkInterceptor.CaptureCancellationTokenSource.Token);
         }
 
         private async void StopCaptureClick(object sender, RoutedEventArgs e)
         {
             await NetworkInterceptor.StopCapture();
+        }
 
-            StartCapture.IsEnabled = true;
-            StopCapture.IsEnabled = false;
+        public void ChangeStatus(bool IsStarted)
+        {
+            if (IsStarted)
+            {
+                StartCapture.IsEnabled = false;
+                StopCapture.IsEnabled = true;
+            }
+            else
+            {
+                StartCapture.IsEnabled = true;
+                StopCapture.IsEnabled = false;
+            }
         }
 
         private async void ConfirmClick(object sender, RoutedEventArgs e)

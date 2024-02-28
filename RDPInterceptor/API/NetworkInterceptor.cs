@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using WindivertDotnet;
 
 namespace RDPInterceptor.API
@@ -21,6 +22,8 @@ namespace RDPInterceptor.API
         public static bool IsLogConnection { get; set; } = false;
 
         public static bool WriteIntoLog { get; set; } = true;
+
+        public static bool IsCapturing { get; set; } = false;
 
         public static ushort Port { get; set; } = 3389;
 
@@ -74,9 +77,14 @@ namespace RDPInterceptor.API
 
             try
             {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    App.CurrentMainWindow.ChangeStatus(true);
+                });
+
                 await RunCapture(CaptureCancellationTokenSource.Token);
             }
-            catch (OperationCanceledException e)
+            catch (Exception e)
             {
                 Logger.Error(e.Message + e.StackTrace);
             }
@@ -92,22 +100,22 @@ namespace RDPInterceptor.API
 
             try
             {
+                IsCapturing = true;
+                
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     if (Divert != null)
                     {
                         await Divert.RecvAsync(Packet, Addr, cancellationToken);
 
-                        if (await ProcessPacketAsync(Packet, Addr))
+                        if (await ProcessPacketAsync(Packet, Addr, cancellationToken))
                         {
                             await Divert.SendAsync(Packet, Addr, cancellationToken);
                         }
                     }
                 }
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
                 Logger.Log($"Stop Interceptor.");
             }
@@ -125,6 +133,13 @@ namespace RDPInterceptor.API
             {
                 CaptureCancellationTokenSource.Cancel();
                 await Task.Delay(100);
+                
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    App.CurrentMainWindow.ChangeStatus(false);
+                });
+                
+                IsCapturing = false;
                 Logger.Log("Capture has now stopped.");
             }
             else
@@ -132,8 +147,7 @@ namespace RDPInterceptor.API
                 Logger.Log("Capture is not running.");
             }
         }
-
-
+        
         private static unsafe void GetIpAddresses(IPV4Header* header, out IPAddress srcIpAddr, out IPAddress dstIpAddr)
         {
             IPAddress srcIp = header->SrcAddr;
@@ -142,8 +156,10 @@ namespace RDPInterceptor.API
             dstIpAddr = dstIp;
         }
 
-        private static async Task<bool> ProcessPacketAsync(WinDivertPacket Packet, WinDivertAddress Address)
+        private static async Task<bool> ProcessPacketAsync(WinDivertPacket Packet, WinDivertAddress Address, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             if (Packet != null)
             {
                 try
@@ -270,7 +286,7 @@ namespace RDPInterceptor.API
             }
         }
 
-        public static async Task AddIpIntoWhitelistFile(IPAddress ipAddress)
+        private static async Task AddIpIntoWhitelistFile(IPAddress ipAddress)
         {
             Logger.Debug($"Method AddIpIntoWhitelistFile called.");
 

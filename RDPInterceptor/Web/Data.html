@@ -70,6 +70,30 @@
             console.error('Network error:', error);
         });
     }
+    
+    function UpdateStatus() {
+        fetch('/Process/UpdateStatus', {
+            method: 'GET'
+        }).then(response => {
+            if (response.ok) {
+                return response.text();
+            } else {
+                console.error('Failed to get status.');
+                throw new Error('Failed to get status.');
+            }
+        }).then(data => {
+            console.log('Status check. ' + data);
+            if (data === "1") {
+                document.getElementById("StartCapture").disabled = true;
+                document.getElementById("StopCapture").disabled = false;
+            } else {
+                document.getElementById("StartCapture").disabled = false;
+                document.getElementById("StopCapture").disabled = true;
+            }
+        }).catch(error => {
+            console.error('Network error:', error);
+        });
+    }
 
     function DelItem() {
         var selectBox = document.getElementById("select-box");
@@ -182,7 +206,8 @@
         setInterval(function () {
             UpdateDropdown();
             UpdateLog();
-        }, 1000);
+            UpdateStatus();
+        }, 500);
     }
 
 </script>
