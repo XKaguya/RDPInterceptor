@@ -117,7 +117,7 @@ public partial class Setting : Window
         {
             if (File.Exists(settingFilePath))
             {
-                Logger.Log("Called ReadSet");
+                Logger.Debug("Called ReadSet");
                 
                 Logger.Log($"Trying reading settings from file {settingFilePath}");
 

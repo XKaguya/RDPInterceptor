@@ -127,6 +127,26 @@ namespace RDPInterceptor.API.Controllers
                 throw;
             }
         }
+        
+        [Authorize]
+        [HttpGet("UpdateStatus")]
+        public IActionResult UpdateStatus()
+        {
+            try
+            {
+                if (NetworkInterceptor.IsCapturing)
+                {
+                    return Ok("1");
+                }
+
+                return Ok("0");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.Message + ex.StackTrace);
+                throw;
+            }
+        }
 
         [Authorize]
         [HttpPost("DeleteIpAddr")]
