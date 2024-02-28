@@ -119,6 +119,14 @@ namespace RDPInterceptor.API.Controllers
             {
                 await NetworkInterceptor.StopCapture();
 
+                if (!App.WebMode)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        App.CurrentMainWindow.ChangeStatus(true);
+                    });
+                }
+
                 return Ok("Called success.");
             }
             catch (Exception ex)

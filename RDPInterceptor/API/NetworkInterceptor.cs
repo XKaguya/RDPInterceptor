@@ -77,10 +77,13 @@ namespace RDPInterceptor.API
 
             try
             {
-                Application.Current.Dispatcher.Invoke(() =>
+                if (!App.WebMode)
                 {
-                    App.CurrentMainWindow.ChangeStatus(true);
-                });
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        App.CurrentMainWindow.ChangeStatus(true);
+                    });
+                }
 
                 await RunCapture(CaptureCancellationTokenSource.Token);
             }
@@ -133,12 +136,15 @@ namespace RDPInterceptor.API
             {
                 CaptureCancellationTokenSource.Cancel();
                 await Task.Delay(100);
-                
-                Application.Current.Dispatcher.Invoke(() =>
+
+                if (!App.WebMode)
                 {
-                    App.CurrentMainWindow.ChangeStatus(false);
-                });
-                
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        App.CurrentMainWindow.ChangeStatus(false);
+                    });
+                }
+
                 IsCapturing = false;
                 Logger.Log("Capture has now stopped.");
             }

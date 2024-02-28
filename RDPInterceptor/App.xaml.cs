@@ -9,6 +9,8 @@ namespace RDPInterceptor
     public partial class App
     {
         public static MainWindow? CurrentMainWindow { get; private set; }
+        
+        public static bool WebMode { get; private set; }
 
         protected override void OnStartup(StartupEventArgs ev)
         {
@@ -20,6 +22,8 @@ namespace RDPInterceptor
 
                 if (command == "--WebOnly")
                 {
+                    WebMode = true;
+                    
                     RDPInterceptor.MainWindow.Init(true);
 
                     MessageBox.Show($"Web service started at http://localhost:{RDPInterceptor.MainWindow.WebPort}.");
@@ -32,6 +36,8 @@ namespace RDPInterceptor
             }
             else
             {
+                WebMode = false;
+                
                 CurrentMainWindow = new MainWindow();
                 CurrentMainWindow.Show();
                 
