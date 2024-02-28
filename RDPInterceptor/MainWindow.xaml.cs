@@ -26,12 +26,18 @@ namespace RDPInterceptor
             logWindow.Hide();
             InitializeComponent();
             ComboBox.ItemsSource = NetworkInterceptor.IpAddrList;
+        }
 
+        public static void Init(bool OnlyWeb)
+        {
             Setting.Instance.ReadFromSettingFile();
             NetworkInterceptor.ReadLinesFromFileAsync();
 
-            StopCapture.IsEnabled = false;
-
+            if (!OnlyWeb)
+            {
+                App.CurrentMainWindow.ChangeStatus(false);
+            }
+            
             InitWebServer();
         }
 

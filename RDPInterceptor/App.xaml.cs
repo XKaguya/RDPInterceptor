@@ -20,7 +20,7 @@ namespace RDPInterceptor
 
                 if (command == "--WebOnly")
                 {
-                    RDPInterceptor.MainWindow.InitWebServer();
+                    RDPInterceptor.MainWindow.Init(true);
 
                     MessageBox.Show($"Web service started at http://localhost:{RDPInterceptor.MainWindow.WebPort}.");
                 }
@@ -34,6 +34,8 @@ namespace RDPInterceptor
             {
                 CurrentMainWindow = new MainWindow();
                 CurrentMainWindow.Show();
+                
+                RDPInterceptor.MainWindow.Init(true);
             }
         }
     }
