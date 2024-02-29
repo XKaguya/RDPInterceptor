@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Windows;
-using Microsoft.Extensions.Logging;
 using RDPInterceptor.API;
 
 namespace RDPInterceptor
