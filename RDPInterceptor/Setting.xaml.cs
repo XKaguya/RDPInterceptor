@@ -1,9 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 using RDPInterceptor.API;
 
 namespace RDPInterceptor;
@@ -110,6 +112,73 @@ public partial class Setting : Window
             }
         }
     }
+    
+    public static void WriteIntoSettingFile(App.Argument argument)
+    {
+        using (StreamWriter writer = new StreamWriter(settingFilePath, false))
+        {
+            Logger.Log("Called WriteSet");
+                
+            writer.WriteLine("<Settings>");
+
+            writer.WriteLine($"  <IpWhitelistMode>{argument.WhiteList}</IpWhitelistMode>");
+            writer.WriteLine($"  <WriteIntoLog>{NetworkInterceptor.WriteIntoLog}</WriteIntoLog>");
+            writer.WriteLine($"  <LogLevel>{argument.LogLevel}</LogLevel>");
+            writer.WriteLine($"  <RdpPort>{argument.Port}</RdpPort>");
+            writer.WriteLine($"  <WebPort>{argument.UiPort}</WebPort>");
+            writer.WriteLine($"  <ConnectionLog>{argument.LogConnection}</ConnectionLog>");
+
+            writer.WriteLine("</Settings>");
+        }
+    }
+    
+    public void ReadFromSettingFileSync()
+    {
+        if (File.Exists(settingFilePath))
+        {
+            Logger.Debug("Called ReadSet");
+                
+            Logger.Log($"Trying reading settings from file {settingFilePath}");
+
+            try
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var doc = XDocument.Load(settingFilePath);
+                    var settingsElement = doc.Element("Settings");
+
+                    if (settingsElement != null)
+                    {
+                        NetworkInterceptor.IpWhitelistMode = bool.Parse(settingsElement.Element("IpWhitelistMode").Value);
+                        WhiteListModeCheck.IsChecked = NetworkInterceptor.IpWhitelistMode;
+
+                        NetworkInterceptor.WriteIntoLog = bool.Parse(settingsElement.Element("WriteIntoLog").Value);
+                        IpLogCheck.IsChecked = NetworkInterceptor.WriteIntoLog;
+
+                        Logger.SetLogLevel(settingsElement.Element("LogLevel").Value);
+                        DebugLog.IsChecked = Logger.LogLevel == "DEBUG";
+
+                        NetworkInterceptor.Port = ushort.Parse(settingsElement.Element("RdpPort").Value);
+                        RdpPort.Text = NetworkInterceptor.Port.ToString();
+
+                        MainWindow.WebPort = ushort.Parse(settingsElement.Element("WebPort").Value);
+                        WebPort.Text = MainWindow.WebPort.ToString();
+                        
+                        NetworkInterceptor.IsLogConnection = bool.Parse(settingsElement.Element("ConnectionLog").Value);
+                        ConnectionLog.IsChecked = NetworkInterceptor.IsLogConnection;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error reading setting file: {ex.Message}");
+            }
+        }
+        else
+        {
+            Logger.Error($"Setting file not found: {settingFilePath}");
+        }
+    }
 
     public void ReadFromSettingFile()
     {
@@ -135,7 +204,7 @@ public partial class Setting : Window
                         IpLogCheck.IsChecked = NetworkInterceptor.WriteIntoLog;
 
                         Logger.SetLogLevel(settingsElement.Element("LogLevel").Value);
-                        DebugLog.IsChecked = (Logger.LogLevel == "DEBUG");
+                        DebugLog.IsChecked = Logger.LogLevel == "DEBUG";
 
                         NetworkInterceptor.Port = ushort.Parse(settingsElement.Element("RdpPort").Value);
                         RdpPort.Text = NetworkInterceptor.Port.ToString();

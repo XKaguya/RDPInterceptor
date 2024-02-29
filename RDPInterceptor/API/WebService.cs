@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
@@ -119,6 +120,14 @@ namespace RDPInterceptor.API.Controllers
             {
                 await NetworkInterceptor.StopCapture();
 
+                if (!App.WebMode)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        App.CurrentMainWindow.ChangeStatus(true);
+                    });
+                }
+
                 return Ok("Called success.");
             }
             catch (Exception ex)
@@ -191,6 +200,24 @@ namespace RDPInterceptor.API.Controllers
 
                     return Ok();
                 }
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message + e.StackTrace);
+                throw;
+            }
+        }
+        
+        [Authorize]
+        [HttpPost("ApplySettings")]
+        public IActionResult ApplySettings([FromBody] App.Argument argument)
+        {
+            try
+            {
+                Setting.WriteIntoSettingFile(argument);
+                Setting.Instance.ReadFromSettingFileSync();
+                
+                return Ok("Applied.");
             }
             catch (Exception e)
             {

@@ -17,7 +17,7 @@ namespace RDPInterceptor
     {
         static LogWindow logWindow = LogWindow.Instance;
 
-        public static CancellationTokenSource? WebCancellactionTokenSource = new();
+        private static CancellationTokenSource? WebCancellactionTokenSource = new();
 
         public static ushort WebPort { get; set; } = 5000;
 
@@ -26,16 +26,22 @@ namespace RDPInterceptor
             logWindow.Hide();
             InitializeComponent();
             ComboBox.ItemsSource = NetworkInterceptor.IpAddrList;
+        }
 
+        public static void Init(bool OnlyWeb)
+        {
             Setting.Instance.ReadFromSettingFile();
             NetworkInterceptor.ReadLinesFromFileAsync();
 
-            StopCapture.IsEnabled = false;
-
+            if (!OnlyWeb)
+            {
+                App.CurrentMainWindow.ChangeStatus(false);
+            }
+            
             InitWebServer();
         }
 
-        public static async Task InitWebServer()
+        private static async Task InitWebServer()
         {
             await Task.Run(async () =>
             {
