@@ -3,6 +3,7 @@
 <head>
     <title>Data Page</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
@@ -23,6 +24,7 @@
             <button onclick="AddItem()" class="btn btn-primary mb-3">Add</button>
             <button id="StartCapture" onclick="StartCapture()" class="btn btn-success mb-3">Start Interceptor</button>
             <button id="StopCapture" onclick="StopCapture()" class="btn btn-warning mb-3">Stop Capture</button>
+            <button onclick="showSettings()" class="btn btn-secondary mb-3">Settings</button>
             <div class="form-group">
                 <label for="log-area">Log:</label>
                 <textarea id="log-area" rows="5" class="form-control" readonly></textarea>
@@ -30,10 +32,55 @@
         </div>
     </div>
 </div>
-</body>
+
+<!-- 模态框 -->
+<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- 设置选项 -->
+                <div class="form-group">
+                    <label for="webOnlyCheckbox">Web Only:</label>
+                    <input type="checkbox" id="webOnlyCheckbox">
+                </div>
+                <div class="form-group">
+                    <label for="logLevelInput">Log Level:</label>
+                    <input type="text" id="logLevelInput" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="portInput">Port:</label>
+                    <input type="number" id="portInput" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="whiteListCheckbox">White List:</label>
+                    <input type="checkbox" id="whiteListCheckbox">
+                </div>
+                <div class="form-group">
+                    <label for="logConnectionCheckbox">Log Connection:</label>
+                    <input type="checkbox" id="logConnectionCheckbox">
+                </div>
+                <div class="form-group">
+                    <label for="uiPortInput">UI Port:</label>
+                    <input type="number" id="uiPortInput" class="form-control">
+                </div>
+                <!-- 添加其他设置选项 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="applySettings()">Apply</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-
     function StartCapture() {
         document.getElementById("StartCapture").disabled = true;
         document.getElementById("StopCapture").disabled = false;
@@ -70,30 +117,48 @@
             console.error('Network error:', error);
         });
     }
-    
-    function UpdateStatus() {
-        fetch('/Process/UpdateStatus', {
-            method: 'GET'
+
+    function showSettings() {
+        $('#settingsModal').modal('show');
+    }
+
+    function applySettings() {
+        const webOnly = document.getElementById('webOnlyCheckbox').checked;
+        const logLevel = document.getElementById('logLevelInput').value;
+        const port = document.getElementById('portInput').value;
+        const whiteList = document.getElementById('whiteListCheckbox').checked;
+        const logConnection = document.getElementById('logConnectionCheckbox').checked;
+        const uiPort = document.getElementById('uiPortInput').value;
+
+        const settingsObj = {
+            webOnly: webOnly,
+            logLevel: logLevel,
+            port: port,
+            whiteList: whiteList,
+            logConnection: logConnection,
+            uiPort: uiPort
+        };
+
+        fetch('/Process/ApplySettings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settingsObj)
         }).then(response => {
             if (response.ok) {
-                return response.text();
+                console.log('Settings applied successfully.');
             } else {
-                console.error('Failed to get status.');
-                throw new Error('Failed to get status.');
-            }
-        }).then(data => {
-            console.log('Status check. ' + data);
-            if (data === "1") {
-                document.getElementById("StartCapture").disabled = true;
-                document.getElementById("StopCapture").disabled = false;
-            } else {
-                document.getElementById("StartCapture").disabled = false;
-                document.getElementById("StopCapture").disabled = true;
+                console.error('Failed to apply settings.');
             }
         }).catch(error => {
             console.error('Network error:', error);
         });
+
+        $('#settingsModal').modal('hide');
     }
+
+    var currentIpAddrList = [];
 
     function DelItem() {
         var selectBox = document.getElementById("select-box");
@@ -143,8 +208,6 @@
             console.error('Network error:', error);
         });
     }
-
-    var currentIpAddrList = [];
 
     function UpdateDropdown() {
         fetch('/Process/GetIpAddrList', {
@@ -206,10 +269,10 @@
         setInterval(function () {
             UpdateDropdown();
             UpdateLog();
-            UpdateStatus();
         }, 500);
     }
 
 </script>
 
+</body>
 </html>

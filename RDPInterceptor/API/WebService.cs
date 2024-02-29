@@ -206,6 +206,24 @@ namespace RDPInterceptor.API.Controllers
                 throw;
             }
         }
+        
+        [Authorize]
+        [HttpPost("ApplySettings")]
+        public IActionResult ApplySettings([FromBody] App.Argument argument)
+        {
+            try
+            {
+                Setting.WriteIntoSettingFile(argument);
+                Setting.Instance.ReadFromSettingFileSync();
+                
+                return Ok("Applied.");
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message + e.StackTrace);
+                throw;
+            }
+        }
 
         [Authorize]
         [HttpGet("GetLog")]
