@@ -10,6 +10,11 @@ This tool can prevent from brute force RDP connections.
 ## Cmd
 
 ### `.\RDPInterceptor.exe --WebOnly`
+> Optional additional parameters
+
+> --WebOnly, --LogConnection, --LogLevel, --Whitelist, --UiPort, --Port
+
+> e.g. `.\RDPInterceptor.exe --WebOnly true --Port 3389 --LogLevel Debug --LogConnection true --Whitelist true --UiPort 5000`
 
 ## GUI
 
