@@ -13,7 +13,7 @@ namespace RDPInterceptor
         
         public static bool WebMode { get; private set; }
 
-        private void Initilzation(Argument argument)
+        private void Initialization(Argument argument)
         {
             if (argument.LogLevel == "Debug" || argument.LogLevel == "DEBUG")
             {
@@ -128,7 +128,7 @@ namespace RDPInterceptor
                         }
                     }
                 }
-                Initilzation(argument);
+                Initialization(argument);
             }
             else
             {

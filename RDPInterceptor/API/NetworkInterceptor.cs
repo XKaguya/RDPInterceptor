@@ -111,7 +111,7 @@ namespace RDPInterceptor.API
                     {
                         await Divert.RecvAsync(Packet, Addr, cancellationToken);
 
-                        if (await ProcessPacketAsync(Packet, Addr, cancellationToken))
+                        if (ProcessPacket(Packet, Addr, cancellationToken))
                         {
                             await Divert.SendAsync(Packet, Addr, cancellationToken);
                         }
@@ -162,7 +162,7 @@ namespace RDPInterceptor.API
             dstIpAddr = dstIp;
         }
 
-        private static async Task<bool> ProcessPacketAsync(WinDivertPacket Packet, WinDivertAddress Address, CancellationToken cancellationToken)
+        private static bool ProcessPacket(WinDivertPacket Packet, WinDivertAddress Address, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             
@@ -186,19 +186,17 @@ namespace RDPInterceptor.API
                         if (IpAddrList.Contains(SrcIpAddr))
                         {
                             LogConnections(IsLogConnection, $"Incoming RDP Connection from {SrcIpAddr} has been accepted.");
-                            Packet.CalcChecksums(Address);
                             return true;
                         }
                         else if (IpAddrList.Contains(DstIpAddr))
                         {
                             LogConnections(IsLogConnection, $"Outgoing RDP Connection to {DstIpAddr} has been accepted.");
-                            Packet.CalcChecksums(Address);
                             return true;
                         }
                         else
                         {
                             LogConnections(IsLogConnection, $"Incoming RDP Connection from {SrcIpAddr} has been refused.");
-                            await LogConnectionAsync(SrcIpAddr);
+                            LogConnectionAsync(SrcIpAddr);
 
                             return false;
                         }
