@@ -30,6 +30,8 @@ namespace RDPInterceptor.API
         private static WinDivert? Divert { get; set; }
         
         private static readonly SemaphoreSlim semaphore = new(1);
+        
+        private static readonly SemaphoreSlim semaphoreLogFile = new(1);
 
         private static WinDivertPacket? Packet { get; set; }
 
@@ -219,17 +221,19 @@ namespace RDPInterceptor.API
                 Logger.Debug(content);
             }
         }
-
-        private static async Task LogConnectionAsync(IPAddress srcIpAddr)
+        
+        public static async Task LogConnectionAsync(IPAddress srcIpAddr)
         {
             try
             {
+                await semaphoreLogFile.WaitAsync();
+
                 string logFilePath = "Connectionlist.log";
 
                 if (File.Exists(logFilePath))
                 {
                     string[] lines = await File.ReadAllLinesAsync(logFilePath);
-                    if (lines.Contains(srcIpAddr.ToString()))
+                    if (Array.Exists(lines, line => line.Equals(srcIpAddr.ToString())))
                     {
                         return;
                     }
@@ -240,15 +244,19 @@ namespace RDPInterceptor.API
                     fs.Close();
                 }
 
-                using (StreamWriter writer = File.AppendText(logFilePath))
+                await using (StreamWriter writer = File.AppendText(logFilePath))
                 {
                     await writer.WriteLineAsync(srcIpAddr.ToString());
                 }
-            }
+            } 
             catch (Exception e)
             {
-                Logger.Error(e.Message + e.StackTrace);
+                Console.WriteLine(e.Message);
                 throw;
+            }
+            finally
+            {
+                semaphoreLogFile.Release();
             }
         }
 

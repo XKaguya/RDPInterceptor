@@ -18,35 +18,33 @@
                     <label for="password">Password:</label>
                     <input type="password" id="password" class="form-control" required>
                 </div>
-                <button onclick="LoginIn()" type="submit" class="btn btn-primary">Login</button>
+                <button type="submit" class="btn btn-primary">Login</button>
             </form>
-            <button onclick="ChangePasswd()" id="change-password" class="btn btn-link">Change Password</button>
+            <button id="change-password" class="btn btn-link">Change Password</button>
         </div>
     </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 <script>
-    document.getElementById('login-form').addEventListener('submit', function (event) {
+    document.getElementById('login-form').addEventListener('submit', async function(event) {
         event.preventDefault();
 
         var username = document.getElementById('username').value;
         var password = document.getElementById('password').value;
 
-        LoginIn(username, password);
+        await LoginIn(username, password);
     });
 
     document.getElementById('change-password').addEventListener('click', function () {
         var username = prompt('Please enter your username');
         var newPassword = prompt('Please enter your new password');
 
-        ChangePasswd(username, newPassword)
+        ChangePasswd(username, newPassword);
     });
 
-    // Function
-
     async function LoginIn(username, passwd) {
-        const authInfo = {username: username, password: passwd};
+        const authInfo = { username: username, password: passwd };
         try {
             const response = await fetch('/Process/LoginIn', {
                 method: 'POST',
@@ -55,18 +53,23 @@
                 },
                 body: JSON.stringify(authInfo)
             });
+            const result = await response.text();
             if (response.ok) {
-                console.log('Login successful.');
-                var currentUrl = window.location.href;
-                var urlParts = currentUrl.split('/');
-                urlParts[urlParts.length - 1] = 'Data';
-                var newUrl = urlParts.join('/');
-                window.location.href = newUrl;
+                if (result === "Sucess.") {
+                    console.log('Login successful.');
+                    var currentUrl = window.location.href;
+                    var urlParts = currentUrl.split('/');
+                    urlParts[urlParts.length - 1] = 'Data';
+                    var newUrl = urlParts.join('/');
+                    window.location.href = newUrl;
+                } else {
+                    alert('Failed to login. Wrong username or password.');
+                }
             } else {
-                console.error('Failed to login.');
+                alert('Failed to login. Unknown problem.');
             }
         } catch (error) {
-            console.error('Network error:', error);
+            alert('Network error:', error);
         }
     }
 
@@ -81,12 +84,12 @@
             body: JSON.stringify(authInfo)
         }).then(response => {
             if (response.ok) {
-                console.log('Password changed successfully.');
+                alert('Password changed successfully.');
             } else {
-                console.error('Failed to change password.');
+                alert('Failed to change password.');
             }
         }).catch(error => {
-            console.error('Network error:', error);
+            alert('Network error:', error);
         });
     }
 
