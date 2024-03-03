@@ -91,12 +91,12 @@
             if (response.ok) {
                 return response.text();
             } else {
-                console.error('Failed to start.');
+                alert('Failed to start.');
             }
         }).then(data => {
             console.log('Response:', data);
         }).catch(error => {
-            console.error('Network error:', error);
+            alert('Network error:', error);
         });
     }
 
@@ -114,7 +114,7 @@
                 console.error('Failed on stop capture.');
             }
         }).catch(error => {
-            console.error('Network error:', error);
+            alert('Network error:', error);
         });
     }
 
@@ -147,12 +147,12 @@
             body: JSON.stringify(settingsObj)
         }).then(response => {
             if (response.ok) {
-                console.log('Settings applied successfully.');
+                alert('Settings applied successfully.');
             } else {
-                console.error('Failed to apply settings.');
+                alert('Failed to apply settings.');
             }
         }).catch(error => {
-            console.error('Network error:', error);
+            alert('Network error:', error);
         });
 
         $('#settingsModal').modal('hide');
@@ -179,10 +179,10 @@
                     currentIpAddrList.splice(selectedIndex, 1);
                     return response.text();
                 } else {
-                    console.error('Failed to delete IP.');
+                    alert('Failed to delete IP. Possibly a null item.');
                 }
             }).catch(error => {
-                console.error('Network error:', error);
+                alert('Network error:', error);
             });
         }
     }
@@ -202,10 +202,10 @@
                 inputBox.value = "";
                 return response.text();
             } else {
-                console.error('Failed to add IP.');
+                alert('Invalid IP/Domain address or IP has already exist.');
             }
         }).catch(error => {
-            console.error('Network error:', error);
+            alert('Network error:', error);
         });
     }
 

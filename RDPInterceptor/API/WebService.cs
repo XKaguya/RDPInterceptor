@@ -107,6 +107,7 @@ namespace RDPInterceptor.API.Controllers
             catch (Exception ex)
             {
                 Logger.Error(ex.Message + ex.StackTrace);
+                
                 throw;
             }
         }
@@ -194,10 +195,24 @@ namespace RDPInterceptor.API.Controllers
                 using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
                 {
                     string ipAddr = reader.ReadToEndAsync().Result;
+                    
+                    TaskCompletionSource<IActionResult> tcs = new TaskCompletionSource<IActionResult>();
 
-                    Application.Current.Dispatcher.Invoke(() => { NetworkInterceptor.AddIpIntoList(ipAddr); });
+                    Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        try
+                        {
+                            NetworkInterceptor.AddIpIntoList(ipAddr);
+                            tcs.SetResult(Ok("IP has been added."));
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex.Message + ex.StackTrace);
+                            throw;
+                        }
+                    });
 
-                    return Ok();
+                    return Ok("IP has been added.");
                 }
             }
             catch (Exception e)
@@ -329,11 +344,11 @@ namespace RDPInterceptor.API.Controllers
 
                 Logger.Log("Login success.");
 
-                return Ok();
+                return Ok("Sucess.");
             }
             else
             {
-                return Unauthorized();
+                return Ok("Failed.");
             }
         }
 
