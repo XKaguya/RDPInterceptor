@@ -46,7 +46,7 @@
     async function LoginIn(username, passwd) {
         const authInfo = { username: username, password: passwd };
         try {
-            const response = await fetch('/Process/LoginIn', {
+            const response = await fetch('/Process/Login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

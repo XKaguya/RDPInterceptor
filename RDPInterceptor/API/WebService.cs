@@ -124,7 +124,7 @@ namespace RDPInterceptor.API.Controllers
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        App.CurrentMainWindow.ChangeStatus(true);
+                        App.CurrentMainWindow.ChangeStatus(false);
                     });
                 }
 
@@ -283,12 +283,12 @@ namespace RDPInterceptor.API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("LoginIn")]
-        public async Task<IActionResult> LoginIn([FromBody] AuthInfo authInfo)
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] AuthInfo authInfo)
         {
             var remoteIpAddress = HttpContext.Connection.RemoteIpAddress;
 
-            Logger.Debug($"Client {remoteIpAddress} called LoginIn");
+            Logger.Debug($"Client {remoteIpAddress} called Login");
 
             if (authInfo == null)
             {

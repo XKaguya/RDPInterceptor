@@ -260,15 +260,36 @@
         });
     }
 
-    window.onload = function () {
-        document.getElementById("StartCapture").disabled = false;
-        document.getElementById("StopCapture").disabled = true;
+    function UpdateStatus() {
+        fetch('/Process/UpdateStatus', {
+            method: 'GET'
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to get update.');
+            }
+            return response.text();
+        }).then(data => {
+            if (data === "1") {
+                document.getElementById("StartCapture").disabled = true;
+                document.getElementById("StopCapture").disabled = false;
+            }
+            else {
+                document.getElementById("StartCapture").disabled = false;
+                document.getElementById("StopCapture").disabled = true;
+            }
+        }).catch(error => {
+            console.error('Network error:', error);
+        });
+    }
 
+    window.onload = function () {
         UpdateDropdown();
         UpdateLog();
+        UpdateStatus();
         setInterval(function () {
             UpdateDropdown();
             UpdateLog();
+            UpdateStatus();
         }, 500);
     }
 

@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Extensions.Logging;
 using WindivertDotnet;
 
 namespace RDPInterceptor.API
@@ -70,28 +71,35 @@ namespace RDPInterceptor.API
 
         public static async Task StartCapture(CancellationToken cancellationToken)
         {
-            Logger.Log("Start Interceptor.");
-
-            if (cancellationToken.IsCancellationRequested)
+            if (!NetworkInterceptor.IsCapturing)
             {
-                CaptureCancellationTokenSource = new CancellationTokenSource();
-            }
+                Logger.Log("Start Interceptor.");
 
-            try
-            {
-                if (!App.WebMode)
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        App.CurrentMainWindow.ChangeStatus(true);
-                    });
+                    CaptureCancellationTokenSource = new CancellationTokenSource();
                 }
 
-                await RunCapture(CaptureCancellationTokenSource.Token);
+                try
+                {
+                    if (!App.WebMode)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            App.CurrentMainWindow.ChangeStatus(true);
+                        });
+                    }
+
+                    await RunCapture(CaptureCancellationTokenSource.Token);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e.Message + e.StackTrace);
+                }
             }
-            catch (Exception e)
+            else
             {
-                Logger.Error(e.Message + e.StackTrace);
+                Logger.Error("Unknown Error. Service already started but is able to call again. Request denied.");
             }
         }
 
